@@ -43,3 +43,6 @@ jobs:
         asset_path: ./bin/server.js  # Path to the server.js file
         asset_name: server.js  # Name for the uploaded file in the release
         asset_content_type: application/javascript
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
