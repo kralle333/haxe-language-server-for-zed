@@ -1,0 +1,47 @@
+name: Manual vshaxe Build and Release
+
+# This specifies that the workflow is only triggered manually
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run vshaxe build
+      run: npx lix run vshaxe-build -t language-server
+
+    - name: Get version from package.json
+      id: get_version
+      run: echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.VERSION }}  # Automatically generated tag
+        release_name: v${{ env.VERSION }}  # Automatically generated release name
+        draft: false
+        prerelease: false
+
+    - name: Upload server.js to Release
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./bin/server.js  # Path to the server.js file
+        asset_name: server.js  # Name for the uploaded file in the release
+        asset_content_type: application/javascript
